@@ -1,26 +1,34 @@
-from collections import defaultdict 
-
 # read the input file and parse into adjacency list 
 def read_textfile(filename):
+    network = {} 
+    node_list = []
+
     with open(filename, 'r') as f:
-        # read file and strip trailing whitespace 
-        # split the nodes into lines 
-        lines = f.read().strip().split("\n")   
-       
-    # create a defaultdict object  of type list 
-    d = defaultdict(list)
+        for line in f:
+            node, neighbor, cost = map(int, line.strip().split())
+            #print(node, neighbor, cost)
+            # keeping track of every node 
+            if node not in node_list:
+                node_list.append(node)
+            if neighbor not in node_list:
+                node_list.append(neighbor)
 
-    for line in lines: 
-        # split the lines using a space as the delimiter 
-        ls = line.split(" ")
-        # create the adjacency list to store the network 
-        d[ls[0]].append(ls[1:])
-    #print(d)
+    # now that we have every node, create a dv_table for each node 
+            network.setdefault(node, {})[neighbor] = {'cost': cost, 'next_hop': None}
+    
+    for node in node_list: 
+        network[node] = {}
+        for neighbor, cost in network.get(node, []):  # Check if node exists in adjacency list
+            network[node][neighbor] = {'cost': cost, 'next_hop': None}
 
-# craete a table for each node 
+
+    return network
 
 def main():
-    read_textfile('network.txt')
+    network = read_textfile('network.txt')
+    for node, dv_table in network.items():
+        print(f"Node {node}: {dv_table}")
+
 
 if __name__ == "__main__":
     main()
