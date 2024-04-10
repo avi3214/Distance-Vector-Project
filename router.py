@@ -1,26 +1,25 @@
 # read the input file and parse into adjacency list 
 def read_textfile(filename):
     network = {} 
-    node_list = []
 
     with open(filename, 'r') as f:
         for line in f:
             node, neighbor, cost = map(int, line.strip().split())
-            #print(node, neighbor, cost)
-            # keeping track of every node 
-            if node not in node_list:
-                node_list.append(node)
-            if neighbor not in node_list:
-                node_list.append(neighbor)
+            #print(f"Processing line: {node}, {neighbor}, {cost}")
+            if node not in network:
+                #print(f"Node {node} not in network, adding.")
+                network[node] = {n: 0 if n == node else 99 for n in range(1,6)}
+            else:
+                network[node][neighbor] = cost
 
-    # now that we have every node, create a dv_table for each node 
-            network.setdefault(node, {})[neighbor] = {'cost': cost, 'next_hop': None}
-    
-    for node in node_list: 
-        network[node] = {}
-        for neighbor, cost in network.get(node, []):  # Check if node exists in adjacency list
-            network[node][neighbor] = {'cost': cost, 'next_hop': None}
+            # Add reverse edge as well (assuming bidirectional links)
+            if neighbor not in network:
+                #print(f"Node {neighbor} not in network, adding.")\
+                network[neighbor] = {n: 0 if n == neighbor else 99 for n in range(1,6)}
+            else:
+                network[neighbor][node] = cost
 
+            #print(f"Current network: {network}")
 
     return network
 
@@ -28,7 +27,7 @@ def main():
     network = read_textfile('network.txt')
     for node, dv_table in network.items():
         print(f"Node {node}: {dv_table}")
-
+        #Wpass
 
 if __name__ == "__main__":
     main()
