@@ -1,3 +1,31 @@
+import socket 
+import threading
+
+"""
+create a thread for each node
+set up a client and server so each node can act as each
+"""
+HOST = socket.gethostname()
+
+def server_setup():
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # create the socket object
+    
+    server_socket.bind((HOST, 1234))
+    server_socket.listen(5)
+
+    while True:
+        conn, addr = server_socket.accept()
+         
+def client_setup():
+    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    port = 4567
+    client_socket.connect((HOST, port))
+    client_socket.sendall()
+    data = client_socket.recv(1024)
+
+
+
+
 # read the input file and parse into adjacency list 
 def read_textfile(filename):
     network = {} 
@@ -25,10 +53,14 @@ def read_textfile(filename):
 
     return network
 
+
 def main():
     network = read_textfile('network.txt')
     for node, dv_table in network.items():
         print(f"Node {node}: {dv_table}")
+
+    for node in network.items():
+        pass
       
 
 if __name__ == "__main__":
