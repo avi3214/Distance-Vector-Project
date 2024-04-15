@@ -6,62 +6,82 @@ create a thread for each node
 set up a client and server so each node can act as each
 """
 HOST = socket.gethostname()
+PORT = 5050
+network = {}
 
-def server_setup():
-    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # create the socket object
-    
-    server_socket.bind((HOST, 1234))
-    server_socket.listen(5)
+def server_setup(node):
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((HOST, PORT+node))
+        s.listen()
+        conn, addr = s.accept()
+        with conn:
+            #print(f"Connected by {addr}")
+            while True:
+                data = conn.recv(1024)
+                if not data:
+                    break
+                conn.sendall(data)
+    conn.close()
 
-    while True:
-        conn, addr = server_socket.accept()
          
-def client_setup():
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    port = 4567
-    client_socket.connect((HOST, port))
-    client_socket.sendall()
-    data = client_socket.recv(1024)
-
-
-
+def client_setup(node):
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.connect((HOST, PORT+node))
+            s.sendall(data)
+            data = s.recv(1024)
+    except Exception as e:
+        print(f"Exception occurred in client_setup for node {node}: {e}")
 
 # read the input file and parse into adjacency list 
 def read_textfile(filename):
-    network = {} 
-
     with open(filename, 'r') as f:
         for line in f:
             node, neighbor, cost = map(int, line.strip().split())
-            #print(f"Processing line: {node}, {neighbor}, {cost}")
+            #print(node, neighbor, cost)
             
             if node not in network:
-                #print(f"Node {node} not in network, adding.")
-                network[node] = {n: 99 if n != node else 0 for n in range(1, 6)}
-            else:
-                network[node][neighbor] = cost
-
-            # Add reverse edge as well (assuming bidirectional links)
+                print(f"Adding node {node} to network")
+                network[node] = {}
+                for i in range(1,6):
+                    if i == node:
+                        network[node][i] = 0
+                    else:
+                        network[node][i] = 99
+            network[node][neighbor] = cost
+            
             if neighbor not in network:
-                #print(f"Node {neighbor} not in network, adding.")
-                network[neighbor] = {n: 99 if n != neighbor else 0 for n in range(1, 6)}
-            else:
-                network[neighbor][node] = cost
-
-
-            #print(f"Current network: {network}")
+                print(f"Adding node {neighbor} to network")
+                network[neighbor] = {}
+                for i in range(1,6):
+                    if i == neighbor:
+                        network[neighbor][i] = 0
+                    else:
+                        network[neighbor][i] = 99
+            network[neighbor][node] = cost
 
     return network
 
+def create_threads():
+    threads = []
+    for node in network.keys():
+        server_threads = threading.Thread(target=server_setup, args=(node, ))
+        client_threads = threading.Thread(target=client_setup, args=(node, ))
+        
+        threads.append(server_threads)
+        threads.append(client_threads)
+
+        server_threads.start()
+        client_threads.start()
+
+    for thread in threads:
+        thread.join()
 
 def main():
-    network = read_textfile('network.txt')
+    read_textfile('network.txt')
+    create_threads()
     for node, dv_table in network.items():
         print(f"Node {node}: {dv_table}")
-
-    for node in network.items():
-        pass
-      
 
 if __name__ == "__main__":
     main()
