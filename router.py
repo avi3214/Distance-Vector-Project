@@ -30,21 +30,28 @@ def read_textfile(filename):
     return network
 
 def update_network(node, dv_table):
-    pass
-
+    for neighbor, cost in dv_table.items():
+        if neighbor == node or cost == 99:
+            continue 
+    pass 
 
 def main():
     read_textfile('network.txt')
 
-    print("\nInitial network:")
+    print("Initial network:")
     for node, dv_table in network.items():
-        print(f"\nNode {node}: {dv_table}")
+        print(f"Node {node}: {dv_table}")
     print("\nPress enter to continue")
+
+    for neighbor, cost in dv_table.items():
+        print(f"NEIGHBOR {neighbor} COST {cost}")
 
     # create a loop until the network reaches a stable state 
     # in loop, update the distance vector until network reaches stable
     stable_state = False 
     while not stable_state:
+        previous_network = read_textfile('network.txt')
+
         inp = input()
         if inp == 'q':
             break
@@ -53,9 +60,10 @@ def main():
             update_network(node, dv_table)
         
         for node, dv_table in network.items():
-            print(f"\nNode {node}: {dv_table}")
+            print(f"Node {node}: {dv_table}")
         input("\nPress enter to continue")
-    
+
+    print("Stable state achieved")    
 
 if __name__ == "__main__":
     main()
