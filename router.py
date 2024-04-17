@@ -1,37 +1,4 @@
-import socket 
-import threading
-
-"""
-create a thread for each node
-set up a client and server so each node can act as each
-"""
-HOST = socket.gethostname()
-PORT = 5050
 network = {}
-
-def server_setup(node):
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind((HOST, PORT+node))
-        s.listen()
-        conn, addr = s.accept()
-        with conn:
-            #print(f"Connected by {addr}")
-            while True:
-                data = conn.recv(1024)
-                if not data:
-                    break
-                conn.sendall(data)
-    conn.close()
-
-         
-def client_setup(node):
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.connect((HOST, PORT+node))
-            s.sendall(data)
-            data = s.recv(1024)
-    except Exception as e:
-        print(f"Exception occurred in client_setup for node {node}: {e}")
 
 # read the input file and parse into adjacency list 
 def read_textfile(filename):
@@ -41,7 +8,7 @@ def read_textfile(filename):
             #print(node, neighbor, cost)
             
             if node not in network:
-                print(f"Adding node {node} to network")
+                #print(f"Adding node {node} to network")
                 network[node] = {}
                 for i in range(1,6):
                     if i == node:
@@ -51,7 +18,7 @@ def read_textfile(filename):
             network[node][neighbor] = cost
             
             if neighbor not in network:
-                print(f"Adding node {neighbor} to network")
+                #print(f"Adding node {neighbor} to network")
                 network[neighbor] = {}
                 for i in range(1,6):
                     if i == neighbor:
@@ -62,26 +29,33 @@ def read_textfile(filename):
 
     return network
 
-def create_threads():
-    threads = []
-    for node in network.keys():
-        server_threads = threading.Thread(target=server_setup, args=(node, ))
-        client_threads = threading.Thread(target=client_setup, args=(node, ))
-        
-        threads.append(server_threads)
-        threads.append(client_threads)
+def update_network(node, dv_table):
+    pass
 
-        server_threads.start()
-        client_threads.start()
-
-    for thread in threads:
-        thread.join()
 
 def main():
     read_textfile('network.txt')
-    create_threads()
+
+    print("\nInitial network:")
     for node, dv_table in network.items():
-        print(f"Node {node}: {dv_table}")
+        print(f"\nNode {node}: {dv_table}")
+    print("\nPress enter to continue")
+
+    # create a loop until the network reaches a stable state 
+    # in loop, update the distance vector until network reaches stable
+    stable_state = False 
+    while not stable_state:
+        inp = input()
+        if inp == 'q':
+            break
+
+        for node, dv_table in network.items():
+            update_network(node, dv_table)
+        
+        for node, dv_table in network.items():
+            print(f"\nNode {node}: {dv_table}")
+        input("\nPress enter to continue")
+    
 
 if __name__ == "__main__":
     main()
